@@ -1,0 +1,26 @@
+# Build output
+build/
+out/
+bin/
+
+# Gradle
+.gradle/
+
+# Machine-specific: pins the JDK path, which differs per machine.
+# Copy gradle.properties.example to gradle.properties and edit it.
+gradle.properties
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

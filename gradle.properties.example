@@ -1,0 +1,20 @@
+# Copy this file to `gradle.properties` and set the path to your own JDK.
+#
+# `gradle.properties` is gitignored because this path is machine-specific -- committing it
+# would break the build for everyone else.
+#
+# You need JDK 11 or newer (a JRE will not do). JDK 17 is a good choice: the Gradle wrapper
+# here is 7.4, which supports Java up to 17, so 21+ will fail.
+# Temurin builds: https://adoptium.net/
+#
+# Windows example (note forward slashes):
+#org.gradle.java.home=C:/Users/you/.jdks/jdk-17.0.20+8
+#
+# macOS example:
+#org.gradle.java.home=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
+#
+# Linux example:
+#org.gradle.java.home=/usr/lib/jvm/temurin-17-jdk
+#
+# If JAVA_HOME already points at a suitable JDK you can leave this file empty --
+# Gradle will use JAVA_HOME instead.

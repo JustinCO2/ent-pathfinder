@@ -1,0 +1,84 @@
+plugins {
+	id 'java'
+}
+
+repositories {
+	mavenLocal()
+	maven {
+		url = 'https://repo.runelite.net'
+	}
+	mavenCentral()
+}
+
+def runeLiteVersion = 'latest.release'
+
+dependencies {
+	compileOnly group: 'net.runelite', name: 'client', version: runeLiteVersion
+
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+	testImplementation 'junit:junit:4.12'
+	testImplementation group: 'net.runelite', name: 'client', version: runeLiteVersion
+	testImplementation group: 'net.runelite', name: 'jshell', version: runeLiteVersion
+}
+
+group = 'com.entpathfinder'
+version = '1.0.0'
+
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = 'UTF-8'
+	options.release.set(11)
+}
+
+// Receive calls from the relay and print clustered events to the console. Needs no game
+// client and no login -- this exercises everything except the RuneLite wiring. Defaults to a
+// local relay (`npm run dev` in ent-relay):
+//   gradlew entWatch                              everything (ents are sporadic)
+//   gradlew entWatch -Ptype=ENT -Pworld=444       just ents on 444, as the plugin subscribes
+//   gradlew entWatch -Prelay=wss://.../ws         a deployed relay
+tasks.register('entWatch', JavaExec) {
+	group = 'verification'
+	description = 'Connect to the call relay headlessly and print clustered events'
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.entpathfinder.EntWatch'
+	args = [
+		project.findProperty('relay') ?: 'ws://127.0.0.1:8787/ws',
+		project.findProperty('type') ?: 'ANY',
+		project.findProperty('world') ?: ''
+	]
+}
+
+// Launch RuneLite with this plugin loaded:  gradlew runClient
+tasks.register('runClient', JavaExec) {
+	group = 'application'
+	description = 'Launch RuneLite with the Ent Pathfinder plugin loaded'
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.entpathfinder.EntPathfinderPluginTest'
+	// ExternalPluginManager.loadBuiltin hard-fails without assertions enabled.
+	jvmArgs = ['-ea']
+}
+
+// Sibling plugin projects to load alongside this one in `runClientAll`.
+def siblingPlugins = ['doom-utilities']
+
+// Launch RuneLite with this plugin AND the siblings loaded:  gradlew runClientAll
+//
+// RuneLite takes any number of plugins; the reason `runClient` only ever loads one is that each
+// plugin is a separate Gradle build with its own classpath. Borrowing the siblings' build output
+// is enough to get them all into one client. They are added unconditionally -- a directory that
+// does not exist is harmless on a classpath, and DevClient reports whatever failed to turn up.
+//
+// Build the siblings first, or they will be skipped:  cd ..\doom-utilities && gradlew build
+tasks.register('runClientAll', JavaExec) {
+	group = 'application'
+	description = 'Launch RuneLite with this plugin and every sibling plugin project loaded'
+	classpath = sourceSets.test.runtimeClasspath + files(
+		siblingPlugins.collect { [
+			"../$it/build/classes/java/main",
+			"../$it/build/resources/main"
+		] }.flatten()
+	)
+	mainClass = 'com.entpathfinder.DevClient'
+	jvmArgs = ['-ea']
+}
