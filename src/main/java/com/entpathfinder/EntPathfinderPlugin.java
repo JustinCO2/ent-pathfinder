@@ -43,6 +43,12 @@ public class EntPathfinderPlugin extends Plugin
 	static final int NO_TARGET = 0;
 
 	/**
+	 * The community forestry world, and the only world the plugin connects on. Fixing it to one
+	 * world also bounds the relay's load: a single world holds at most 2,000 players.
+	 */
+	static final int FORESTRY_WORLD = 444;
+
+	/**
 	 * How long to keep the relay connection after it stops being needed. Hopping, relogging after
 	 * the six-hour logout, or a lag spike would otherwise each cost a fresh connection against the
 	 * relay's daily allowance. A grace period rides them out.
@@ -186,12 +192,6 @@ public class EntPathfinderPlugin extends Plugin
 			return;
 		}
 
-		if ("relayEnabled".equals(event.getKey()) && !config.relayEnabled())
-		{
-			// Turned off: disconnect now, without waiting out the grace period.
-			relay.disconnect();
-		}
-
 		if (changesWhichCallsCount(event.getKey()))
 		{
 			shortestPath.clearIfOurs();
@@ -205,16 +205,7 @@ public class EntPathfinderPlugin extends Plugin
 	 */
 	private static boolean changesWhichCallsCount(String key)
 	{
-		switch (key)
-		{
-			case "relayEnabled":
-			case "forestryWorld":
-			case "ignoreSunbleak":
-			case "ignoreDrumstickIsle":
-				return true;
-			default:
-				return false;
-		}
+		return "ignoreSunbleak".equals(key) || "ignoreDrumstickIsle".equals(key);
 	}
 
 	// ------------------------------------------------------------------ the tick
@@ -242,8 +233,8 @@ public class EntPathfinderPlugin extends Plugin
 	}
 
 	/**
-	 * Hold a relay connection only while it can be useful. Logged out, on another world, or with
-	 * calls turned off, the plugin holds no connection at all and costs the relay nothing.
+	 * Hold a relay connection only while it can be useful. Logged out or on any other world, the
+	 * plugin holds no connection at all and costs the relay nothing.
 	 */
 	private void updateRelayConnection()
 	{
@@ -262,9 +253,7 @@ public class EntPathfinderPlugin extends Plugin
 
 	private boolean relayNeeded()
 	{
-		return config.relayEnabled()
-			&& isInGame(gameState)
-			&& currentWorld == config.forestryWorld();
+		return isInGame(gameState) && currentWorld == FORESTRY_WORLD;
 	}
 
 	/**
@@ -278,11 +267,11 @@ public class EntPathfinderPlugin extends Plugin
 			|| state == GameState.CONNECTION_LOST;
 	}
 
-	/** Subscribe to ents on this player's world only, so the relay sends nothing else. */
+	/** Subscribe to ents on the forestry world only, so the relay sends nothing else. */
 	private String relayAddress()
 	{
 		return config.relayUrl().trim()
-			+ "?world=" + config.forestryWorld()
+			+ "?world=" + FORESTRY_WORLD
 			+ "&type=" + EventType.ENT.getWireName();
 	}
 
@@ -428,7 +417,8 @@ public class EntPathfinderPlugin extends Plugin
 
 	/**
 	 * Point the path at the oldest event not yet reached or finished -- the one closest to ending,
-	 * and the one at the top of the list. Callers hold eventsLock.
+	 * and the one at the top of the list -- or clear it once there is nothing left to go to.
+	 * Callers hold eventsLock.
 	 */
 	private void retarget()
 	{
@@ -442,12 +432,9 @@ public class EntPathfinderPlugin extends Plugin
 
 		if (next == null)
 		{
-			if (config.clearPathOnEnd())
-			{
-				shortestPath.clearIfOurs();
-			}
+			shortestPath.clearIfOurs();
 		}
-		else if (config.autoPath())
+		else
 		{
 			shortestPath.pathTo(next);
 		}

@@ -36,11 +36,9 @@ The relay runs on a free plan with a daily allowance of 100,000 connections shar
 player. Pushes are not billed, so the only thing that grows with players is how often they
 connect. The client is built so that stays small:
 
-- **Off by default.** *Receive calls* must be switched on, with the Plugin Hub's third-party
-  warning. Until then nothing connects anywhere.
-- **Only connects where it is useful.** Logged in, on the configured forestry world, with calls
-  on. Anywhere else the plugin holds no connection at all. The world must be a single real world,
-  which caps concurrent connections at that world's 2,000-player limit.
+- **Only connects where it is useful.** Logged in on world 444, the community forestry world.
+  Anywhere else the plugin holds no connection at all. Being fixed to one world also caps
+  concurrent connections at that world's 2,000-player limit.
 - **Rides out hops and relogs.** A connection is kept for a minute after it stops being needed,
   and loading screens and brief connection loss count as still in game, so neither hopping, the
   six-hour relog, nor a region load costs a fresh connection.
@@ -103,7 +101,7 @@ location there. See *Which event, and when to move on* for why it is one target 
 
 ## Ents only
 
-The plugin follows ents and nothing else: it subscribes to ents on your forestry world, so the relay
+The plugin follows ents and nothing else: it subscribes to ents on world 444, so the relay
 never sends it anything else, and it discards any other event type it is somehow sent. An ent lasts
 **120s**, stated outright on the wiki, and that is the countdown shown.
 
