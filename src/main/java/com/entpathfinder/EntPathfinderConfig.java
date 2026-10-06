@@ -11,7 +11,7 @@ public interface EntPathfinderConfig extends Config
 {
 	String GROUP = "entpathfinder";
 
-	/** Where calls come from: the deployed relay. See ent-relay/README.md. */
+	/** Where calls come from: the deployed relay. Source: https://github.com/JustinCO2/ent-relay */
 	String DEFAULT_RELAY_URL = "wss://ent-relay.ent-calls.workers.dev/ws";
 
 	@ConfigSection(

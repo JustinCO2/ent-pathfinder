@@ -19,7 +19,7 @@ community-run API every 3 seconds, and the Discord bot reads from there.
 
 This plugin does not read that API itself. Hundreds of installs each polling a community
 database would put load on it that grows with every player. Instead, every player holds one
-connection to the [call relay](../ent-relay/README.md), which is the API's only reader — once
+connection to the [call relay](https://github.com/JustinCO2/ent-relay), which is the API's only reader — once
 every 1.5 seconds however many players are connected — and pushes each change out the moment
 it sees it.
 
@@ -59,7 +59,7 @@ connect. The client is built so that stays small:
 Everything except the RuneLite wiring runs headlessly, using the plugin's real relay client:
 
 ```
-cd ../ent-relay && npm run dev           # a local relay, in one terminal
+npm run dev                               # in a clone of JustinCO2/ent-relay: a local relay
 gradlew entWatch                          # all events, in another
 gradlew entWatch -Ptype=ENT -Pworld=444   # just ents on 444, as the plugin subscribes
 gradlew entWatch -Prelay=wss://.../ws     # a deployed relay
